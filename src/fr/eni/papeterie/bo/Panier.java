@@ -54,6 +54,10 @@ public class Panier extends Ligne{
         lignesPanier.remove(index);
     }
 
+    /**
+     * Méthode d'affichage des Lignes du Panier à partir de la liste de Ligne
+     * @return
+     */
     @Override
     public String toString() {
         return "Panier{" +
