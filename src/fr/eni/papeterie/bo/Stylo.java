@@ -9,7 +9,7 @@ public class Stylo extends Article{
         super();
     }
 
-    public Stylo(int idArticle, String marque, String ref, String designation, float pu, int qte, String couleur) {
+    public Stylo(Integer idArticle, String marque, String ref, String designation, float pu, int qte, String couleur) {
         super(idArticle, marque, ref, designation, pu, qte);
         this.couleur = couleur;
     }
@@ -37,7 +37,8 @@ public class Stylo extends Article{
      */
     @Override
     public String toString() {
-        return "Stylo{" +
+        return super.toString() +
+                "Stylo{" +
                 "couleur='" + couleur + '\'' +
                 '}';
     }

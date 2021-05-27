@@ -3,7 +3,7 @@ package fr.eni.papeterie.bo;
 public abstract class Article {
 
     //Attributs d'instances
-    private int idArticle;
+    private Integer idArticle;
     private String reference;
     private String marque;
     private String designation;
@@ -11,7 +11,7 @@ public abstract class Article {
     private int qteStock;
 
     //-------------------CONSTRUCTEURS--------------------------------------------------
-    public Article(int idArticle, String marque, String ref, String designation, float pu, int qte) {
+    public Article(Integer idArticle, String marque, String ref, String designation, float pu, int qte) {
         this.idArticle = idArticle;
         this.marque = marque;
         this.reference = ref;
@@ -77,7 +77,7 @@ public abstract class Article {
 
 
     //-------------------GETTERS--------------------------------------------------
-    public int getIdArticle() {
+    public Integer getIdArticle() {
         return idArticle;
     }
 

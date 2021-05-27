@@ -10,7 +10,7 @@ public class Ramette extends Article{
         super();
     }
 
-    public Ramette(int idArticle, String marque, String ref, String designation, float pu, int qte, int grammage) {
+    public Ramette(Integer idArticle, String marque, String ref, String designation, float pu, int qte, int grammage) {
         super(idArticle, marque, ref, designation, pu, qte);
         this.grammage = grammage;
     }
@@ -38,7 +38,7 @@ public class Ramette extends Article{
      */
     @Override
     public String toString() {
-        return "Ramette{" +
+        return super.toString() + "Ramette{" +
                 "grammage=" + grammage +
                 '}';
     }
