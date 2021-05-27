@@ -23,7 +23,7 @@ public class ArticleDAOJdbcImpl {
         List<Article> articleList = new ArrayList<>();
 
         try {
-            String sql ="SELECT * FROM Articles;";
+            String sql ="SELECT idArticle, reference, marque, designation, prixUnitaire, qteStock, grammage, couleur, type FROM Articles;";
 
             Connection connection = DriverManager.getConnection(this.url);
             Statement etatClassique = connection.createStatement();
@@ -69,18 +69,18 @@ public class ArticleDAOJdbcImpl {
 
         Article article = null;
 
-        try {
+        try (
+             Connection connection = DriverManager.getConnection(this.url);
+             Statement etatClassique = connection.createStatement()) {
 
-            String sql ="SELECT * FROM Articles WHERE idArticle = " + p_idArticle + ";";
+            String sql ="SELECT idArticle, reference, marque, designation, prixUnitaire, qteStock, grammage, couleur, type FROM Articles WHERE idArticle = " + p_idArticle + ";";
 
-            Connection connection = DriverManager.getConnection(this.url);
-            Statement etatClassique = connection.createStatement();
             ResultSet rs = etatClassique.executeQuery(sql);
 
-            while (rs.next()) {
-                if (rs.getString("couleur" ) == null) {
+            if (rs.next()) {
+                if (rs.getString("type" ).trim().equalsIgnoreCase("RAMETTE")) {
                     article = new Ramette(
-                            rs.getInt("idArticle"),
+                            p_idArticle,
                             rs.getString("marque"),
                             rs.getString("reference"),
                             rs.getString("designation"),
@@ -89,9 +89,9 @@ public class ArticleDAOJdbcImpl {
                             rs.getInt("grammage"));
 
                 }
-                else if (rs.getString("grammage") == null) {
+                else if (rs.getString("type").trim().equalsIgnoreCase("STYLO")) {
                     article = new Stylo(
-                            rs.getInt("idArticle"),
+                            p_idArticle,
                             rs.getString("marque"),
                             rs.getString("reference"),
                             rs.getString("designation"),
@@ -100,7 +100,6 @@ public class ArticleDAOJdbcImpl {
                             rs.getString("couleur"));
                 }
             }
-            connection.close();
         }
         catch(SQLException throwables) {
             throwables.printStackTrace();
@@ -122,10 +121,11 @@ public class ArticleDAOJdbcImpl {
         String sqlComp = "";
         String sqlFin = " WHERE idArticle = " + article.getIdArticle() + ";";
 
-        try {
+        try (
+                Connection connection = DriverManager.getConnection(this.url);
+                Statement etatClassique = connection.createStatement()) {
 
-            Connection connection = DriverManager.getConnection(this.url);
-            Statement etatClassique = connection.createStatement();
+
 
             if (article instanceof Stylo) {
                 sqlComp = ", couleur = '" + ((Stylo) article).getCouleur() + "'";
@@ -146,7 +146,6 @@ public class ArticleDAOJdbcImpl {
 
 
             etatClassique.executeUpdate(sql);
-            connection.close();
         }
         catch(SQLException throwables) {
             throwables.printStackTrace();
@@ -162,13 +161,21 @@ public class ArticleDAOJdbcImpl {
      */
     public void insert(Article article) throws DALException {
 
-        String sql = "";
-        String sqlComp = "";
+        try (Connection connection = DriverManager.getConnection(this.url);
+                Statement etatClassique = connection.createStatement()){
 
-        try {
+            String sql = "INSERT INTO Articles" +
+                    "(reference, marque, designation, prixUnitaire, qteStock, grammage, couleur, type)" +
+                    "VALUES ('" +
+                    article.getReference() + "'," +
+                    article.getMarque() + "', '" +
+                    article.getDesignation() + "', '" +
+                    article.getPrixUnitaire() + "', '" +
+                    article.getQteStock() + "', '";
 
-            Connection connection = DriverManager.getConnection(this.url);
-            Statement etatClassique = connection.createStatement();
+
+            String sqlComp = "";
+
 
             if (article instanceof Stylo) {
                 sqlComp = "'" + ((Stylo)article).getCouleur() + "', 'Stylo');";
@@ -194,17 +201,12 @@ public class ArticleDAOJdbcImpl {
             }
 
             etatClassique.executeUpdate(sql);
-            System.err.println("JUSTE APRES UPDATE");
             ResultSet rs = etatClassique.getGeneratedKeys();
-            while (rs.next()) {
+            if (rs.next()) {
                 Integer id = rs.getInt(1);
                 article.setIdArticle(id);
-                System.err.println(id);
             }
 
-
-
-            connection.close();
         }
 
         catch(SQLException throwables) {
@@ -223,9 +225,9 @@ public class ArticleDAOJdbcImpl {
 
         String sql ="DELETE FROM Articles WHERE idArticle = " + index + ";";
 
-        try {
-            Connection connection = DriverManager.getConnection(this.url);
-            Statement etatClassique = connection.createStatement();
+        try(Connection connection = DriverManager.getConnection(this.url);
+            Statement etatClassique = connection.createStatement()) {
+
             etatClassique.executeUpdate(sql);
             connection.close();
         }
