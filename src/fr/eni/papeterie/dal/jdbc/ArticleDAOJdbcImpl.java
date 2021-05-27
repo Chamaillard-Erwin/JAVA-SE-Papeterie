@@ -167,36 +167,22 @@ public class ArticleDAOJdbcImpl {
             String sql = "INSERT INTO Articles" +
                     "(reference, marque, designation, prixUnitaire, qteStock, grammage, couleur, type)" +
                     "VALUES ('" +
-                    article.getReference() + "'," +
+                    article.getReference() + "', '" +
                     article.getMarque() + "', '" +
                     article.getDesignation() + "', '" +
                     article.getPrixUnitaire() + "', '" +
-                    article.getQteStock() + "', '";
-
+                    article.getQteStock() + "', ";
 
             String sqlComp = "";
 
-
             if (article instanceof Stylo) {
-                sqlComp = "'" + ((Stylo)article).getCouleur() + "', 'Stylo');";
-                sql ="INSERT INTO Articles (reference, marque, designation, prixUnitaire, qteStock, couleur, type) VALUES (" +
-                        "'" + article.getReference() + "', " +
-                        "'" + article.getMarque() + "', " +
-                        "'" + article.getDesignation() + "', " +
-                        "'" + article.getPrixUnitaire() + "', " +
-                        "'" + article.getQteStock() + "', "
-                        + sqlComp;
+                sqlComp = "null, " +  "'" + ((Stylo)article).getCouleur() + "', 'Stylo');";
+                sql += sqlComp;
 
             }
             else if (article instanceof Ramette){
-                sqlComp = "'" + ((Ramette)article).getGrammage() + "', 'Ramette' );";
-                sql ="INSERT INTO Articles (reference, marque, designation, prixUnitaire, qteStock, grammage, type) VALUES (" +
-                        "'" + article.getReference() + "', " +
-                        "'" + article.getMarque() + "', " +
-                        "'" + article.getDesignation() + "', " +
-                        "'" + article.getPrixUnitaire() + "', " +
-                        "'" + article.getQteStock() + "', "
-                        + sqlComp;
+                sqlComp = "'" + ((Ramette)article).getGrammage() + "', null, 'Ramette' );";
+                sql += sqlComp;
 
             }
 
@@ -229,7 +215,6 @@ public class ArticleDAOJdbcImpl {
             Statement etatClassique = connection.createStatement()) {
 
             etatClassique.executeUpdate(sql);
-            connection.close();
         }
         catch(SQLException throwables) {
             throwables.printStackTrace();
