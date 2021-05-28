@@ -1,20 +1,24 @@
-package fr.eni.papeterie.dal.jdbc;
+/**
+ * Classe de méthodes (Couche DAL)
+ * Contient des méthodes avec requete SQL
+ * @author echamaillard
+ */
 
+package fr.eni.papeterie.dal.jdbc;
 
 import fr.eni.papeterie.bo.Article;
 import fr.eni.papeterie.bo.Ramette;
 import fr.eni.papeterie.bo.Stylo;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.SplittableRandom;
 
 public class ArticleDAOJdbcImpl {
 
     //Lien de creation du lien de connection
     private final String url = "jdbc:sqlite:identifier.sqlite";
     //Les requetes SQL préparés
+    private final String SQL_SELECT_ALL ="SELECT idArticle, reference, marque, designation, prixUnitaire, qteStock, grammage, couleur, type FROM Articles;";
     private final String SQL_INSERT ="INSERT INTO Articles (reference, marque, designation, prixUnitaire, qteStock, grammage, couleur, type) VALUES( ?, ?, ?, ?, ?, ?, ?, ?)";
     private final String SQL_UPDATE ="UPDATE Articles SET reference=?, marque=?, designation=?, prixUnitaire=?, qteStock=?, grammage=?, couleur=?, type=? WHERE idArticle=?;";
     private final String SQL_SELECT_BY_ID ="SELECT idArticle, reference, marque, designation, prixUnitaire, qteStock, grammage, couleur, type FROM Articles WHERE idArticle =?";
@@ -31,10 +35,8 @@ public class ArticleDAOJdbcImpl {
 
         try(Connection connection = DriverManager.getConnection(this.url);
             Statement etatClassique = connection.createStatement()) {
-            String sql ="SELECT idArticle, reference, marque, designation, prixUnitaire, qteStock, grammage, couleur, type FROM Articles;";
 
-
-            ResultSet rs = etatClassique.executeQuery(sql);
+            ResultSet rs = etatClassique.executeQuery(SQL_SELECT_ALL);
             while (rs.next()) {
                 if (rs.getString("couleur" ) == null) {
                     articleList.add(new Ramette(
@@ -180,8 +182,7 @@ public class ArticleDAOJdbcImpl {
             statPrepa.executeUpdate();
             ResultSet rs = statPrepa.getGeneratedKeys();
             if (rs.next()) {
-                Integer id = rs.getInt(1);
-                article.setIdArticle(id);
+                article.setIdArticle(rs.getInt(1)); //On attribut
             }
         }
 
@@ -195,14 +196,14 @@ public class ArticleDAOJdbcImpl {
 
     /**
      * Méthode pour supprimer une ligne de la Table Articles en fonction de l'id
-     * @param index
+     * @param id
      */
-    public void delete(int index) throws DALException {
+    public void delete(int id) throws DALException {
 
         try(Connection connection = DriverManager.getConnection(this.url);
             PreparedStatement statPrepa = connection.prepareStatement(SQL_DELETE_BY_ID)) {
 
-            statPrepa.setInt(1, index);
+            statPrepa.setInt(1, id);
             statPrepa.executeUpdate();
         }
         catch(SQLException throwables) {
