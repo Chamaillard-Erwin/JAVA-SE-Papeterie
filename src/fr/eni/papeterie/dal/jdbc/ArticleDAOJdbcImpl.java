@@ -8,10 +8,17 @@ import fr.eni.papeterie.bo.Stylo;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.SplittableRandom;
 
 public class ArticleDAOJdbcImpl {
 
+    //Lien de creation du lien de connection
     private final String url = "jdbc:sqlite:identifier.sqlite";
+    //Les requetes SQL préparés
+    private final String SQL_INSERT ="INSERT INTO Articles (reference, marque, designation, prixUnitaire, qteStock, grammage, couleur, type) VALUES( ?, ?, ?, ?, ?, ?, ?, ?)";
+    private final String SQL_UPDATE ="UPDATE Articles SET reference=?, marque=?, designation=?, prixUnitaire=?, qteStock=?, grammage=?, couleur=?, type=? WHERE idArticle=?;";
+    private final String SQL_SELECT_BY_ID ="SELECT idArticle, reference, marque, designation, prixUnitaire, qteStock, grammage, couleur, type FROM Articles WHERE idArticle =?";
+    private final String SQL_DELETE_BY_ID ="DELETE FROM Articles WHERE idArticle =?;";
 
     //----------------------------------------------------------------------------------------------------------------//
 
@@ -22,11 +29,11 @@ public class ArticleDAOJdbcImpl {
 
         List<Article> articleList = new ArrayList<>();
 
-        try {
+        try(Connection connection = DriverManager.getConnection(this.url);
+            Statement etatClassique = connection.createStatement()) {
             String sql ="SELECT idArticle, reference, marque, designation, prixUnitaire, qteStock, grammage, couleur, type FROM Articles;";
 
-            Connection connection = DriverManager.getConnection(this.url);
-            Statement etatClassique = connection.createStatement();
+
             ResultSet rs = etatClassique.executeQuery(sql);
             while (rs.next()) {
                 if (rs.getString("couleur" ) == null) {
@@ -71,11 +78,10 @@ public class ArticleDAOJdbcImpl {
 
         try (
              Connection connection = DriverManager.getConnection(this.url);
-             Statement etatClassique = connection.createStatement()) {
+             PreparedStatement statPrepa = connection.prepareStatement(SQL_SELECT_BY_ID)) {
 
-            String sql ="SELECT idArticle, reference, marque, designation, prixUnitaire, qteStock, grammage, couleur, type FROM Articles WHERE idArticle = " + p_idArticle + ";";
-
-            ResultSet rs = etatClassique.executeQuery(sql);
+            statPrepa.setInt(1, p_idArticle);
+            ResultSet rs = statPrepa.executeQuery();
 
             if (rs.next()) {
                 if (rs.getString("type" ).trim().equalsIgnoreCase("RAMETTE")) {
@@ -117,35 +123,26 @@ public class ArticleDAOJdbcImpl {
      */
     public void update(Article article) throws DALException {
 
-        String sql = "";
-        String sqlComp = "";
-        String sqlFin = " WHERE idArticle = " + article.getIdArticle() + ";";
+        try (Connection connection = DriverManager.getConnection(this.url);
+                PreparedStatement statPrepa = connection.prepareStatement(SQL_UPDATE)) {
 
-        try (
-                Connection connection = DriverManager.getConnection(this.url);
-                Statement etatClassique = connection.createStatement()) {
-
-
+            statPrepa.setString(1, article.getReference());
+            statPrepa.setString(2, article.getMarque());
+            statPrepa.setString(3, article.getDesignation());
+            statPrepa.setFloat(4, article.getPrixUnitaire());
+            statPrepa.setInt(5, article.getQteStock());
+            statPrepa.setInt(9, article.getIdArticle());
 
             if (article instanceof Stylo) {
-                sqlComp = ", couleur = '" + ((Stylo) article).getCouleur() + "'";
-
+                statPrepa.setString(7, ((Stylo) article).getCouleur());
+                statPrepa.setString(8, "Stylo");
             }
             else if (article instanceof Ramette){
-                sqlComp = ", grammage = '" + ((Ramette)article).getGrammage() + "'";
+                statPrepa.setInt(6, ((Ramette) article).getGrammage());
+                statPrepa.setString(8, "Ramette");
             }
 
-            sql ="UPDATE Articles SET" +
-                    " reference = '" + article.getReference() + "'" +
-                    ", marque = '" + article.getMarque() + "'" +
-                    ", designation = '" + article.getDesignation() + "'" +
-                    ", prixUnitaire = '" + article.getPrixUnitaire() + "'" +
-                    ", qteStock = '" + article.getQteStock() + "'"
-                    + sqlComp + sqlFin;
-
-
-
-            etatClassique.executeUpdate(sql);
+            statPrepa.executeUpdate();
         }
         catch(SQLException throwables) {
             throwables.printStackTrace();
@@ -162,37 +159,30 @@ public class ArticleDAOJdbcImpl {
     public void insert(Article article) throws DALException {
 
         try (Connection connection = DriverManager.getConnection(this.url);
-                Statement etatClassique = connection.createStatement()){
+                PreparedStatement statPrepa = connection.prepareStatement(SQL_INSERT)){
 
-            String sql = "INSERT INTO Articles" +
-                    "(reference, marque, designation, prixUnitaire, qteStock, grammage, couleur, type)" +
-                    "VALUES ('" +
-                    article.getReference() + "', '" +
-                    article.getMarque() + "', '" +
-                    article.getDesignation() + "', '" +
-                    article.getPrixUnitaire() + "', '" +
-                    article.getQteStock() + "', ";
-
-            String sqlComp = "";
+            statPrepa.setString(1, article.getReference());
+            statPrepa.setString(2, article.getMarque());
+            statPrepa.setString(3, article.getDesignation());
+            statPrepa.setFloat(4, article.getPrixUnitaire());
+            statPrepa.setInt(5, article.getQteStock());
 
             if (article instanceof Stylo) {
-                sqlComp = "null, " +  "'" + ((Stylo)article).getCouleur() + "', 'Stylo');";
-                sql += sqlComp;
+                statPrepa.setString(7, ((Stylo)article).getCouleur());
+                statPrepa.setString(8, "Stylo");
 
             }
             else if (article instanceof Ramette){
-                sqlComp = "'" + ((Ramette)article).getGrammage() + "', null, 'Ramette' );";
-                sql += sqlComp;
+                statPrepa.setInt(6, ((Ramette)article).getGrammage());
+                statPrepa.setString(8, "Ramette");
 
             }
-
-            etatClassique.executeUpdate(sql);
-            ResultSet rs = etatClassique.getGeneratedKeys();
+            statPrepa.executeUpdate();
+            ResultSet rs = statPrepa.getGeneratedKeys();
             if (rs.next()) {
                 Integer id = rs.getInt(1);
                 article.setIdArticle(id);
             }
-
         }
 
         catch(SQLException throwables) {
@@ -209,12 +199,11 @@ public class ArticleDAOJdbcImpl {
      */
     public void delete(int index) throws DALException {
 
-        String sql ="DELETE FROM Articles WHERE idArticle = " + index + ";";
-
         try(Connection connection = DriverManager.getConnection(this.url);
-            Statement etatClassique = connection.createStatement()) {
+            PreparedStatement statPrepa = connection.prepareStatement(SQL_DELETE_BY_ID)) {
 
-            etatClassique.executeUpdate(sql);
+            statPrepa.setInt(1, index);
+            statPrepa.executeUpdate();
         }
         catch(SQLException throwables) {
             throwables.printStackTrace();
