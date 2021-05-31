@@ -1,3 +1,7 @@
+/**
+ * Classe Singleton BLL qui communique avec les classes DAL
+ */
+
 package fr.eni.bll;
 
 import fr.eni.exception.BLLException;
@@ -12,7 +16,7 @@ import java.util.List;
 
 public class CatalogueManager {
 
-    ArticleDAO articleDAO = DAOFactory.getArticleDAO();
+    private ArticleDAO articleDAO = DAOFactory.getArticleDAO();
 
     //Création d'une instance du type du Manager en privé
     private static CatalogueManager instance;
@@ -33,7 +37,11 @@ public class CatalogueManager {
     }
 
 
-
+    /**
+     * Méthode qui demande à la DAL tout les articles
+     * @return
+     * @throws BLLException
+     */
     public List<Article> getCatalogue () throws BLLException {
 
         List<Article> listArticle;
@@ -49,6 +57,12 @@ public class CatalogueManager {
 
     //----------------------------------------------------------------------------------------------------------------//
 
+    /**
+     * Méthode qui demande à la DAL un article selon un id
+     * @param p_idArticle
+     * @return
+     * @throws BLLException
+     */
     public Article getArticle (Integer p_idArticle) throws BLLException {
 
         Article article;
@@ -65,6 +79,11 @@ public class CatalogueManager {
 
     //----------------------------------------------------------------------------------------------------------------//
 
+    /**
+     * Méthode qui demande à la DAL une mise à jour d'un article selon un article
+     * @param article
+     * @throws BLLException
+     */
     public void updateArticle(Article article) throws BLLException {
 
         try {
@@ -78,6 +97,11 @@ public class CatalogueManager {
 
     //----------------------------------------------------------------------------------------------------------------//
 
+    /**
+     * Méthode qui demande à la DAL l'insertion d'un nouvel article
+     * @param article
+     * @throws BLLException
+     */
     public void addArticle(Article article) throws BLLException {
 
         try{
@@ -92,6 +116,11 @@ public class CatalogueManager {
 
     //----------------------------------------------------------------------------------------------------------------//
 
+    /**
+     * Méthode qui demande à la DAL de supprimer un article selon un id
+     * @param id
+     * @throws BLLException
+     */
     public void removeArticle(int id) throws BLLException {
         try {
             articleDAO.delete(id);
