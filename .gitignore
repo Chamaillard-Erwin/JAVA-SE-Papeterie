@@ -1,2 +1,4 @@
-# Project exclude paths
-/out/
+*.class
+/.idea/
+settings.properties
+tps.iml

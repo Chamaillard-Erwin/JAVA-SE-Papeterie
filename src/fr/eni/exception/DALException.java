@@ -1,4 +1,4 @@
-package fr.eni.papeterie.dal.jdbc;
+package fr.eni.exception;
 
 public class DALException extends Exception {
 

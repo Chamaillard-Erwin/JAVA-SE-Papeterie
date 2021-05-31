@@ -2,7 +2,7 @@
  * Classe pour récupérer le fichier settings.properties
  */
 
-package fr.eni.papeterie.dal.jdbc;
+package fr.eni.settings;
 
 import java.util.Properties;
 

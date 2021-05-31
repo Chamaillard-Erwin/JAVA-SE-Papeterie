@@ -1,11 +1,8 @@
 package fr.eni.papeterie.dal.jdbc;
 
+import fr.eni.exception.DALException;
 import fr.eni.papeterie.bo.Article;
-import fr.eni.papeterie.bo.Ramette;
-import fr.eni.papeterie.bo.Stylo;
 
-import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public interface ArticleDAO {
