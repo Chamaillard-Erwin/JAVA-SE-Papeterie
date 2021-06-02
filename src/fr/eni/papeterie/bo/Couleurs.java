@@ -4,5 +4,6 @@ public enum Couleurs {
     NOIR,
     ROUGE,
     VERT,
-    BLEU
+    BLEU,
+    JAUNE
 }

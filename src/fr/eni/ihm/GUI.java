@@ -1,9 +1,18 @@
 package fr.eni.ihm;
 
+import fr.eni.bll.CatalogueManager;
+import fr.eni.exception.BLLException;
+import fr.eni.papeterie.bo.Article;
 import fr.eni.papeterie.bo.Couleurs;
+import fr.eni.papeterie.bo.Ramette;
+import fr.eni.papeterie.bo.Stylo;
 
+import javax.lang.model.util.ElementScanner6;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.text.NumberFormat;
 
 public class GUI extends JFrame {
 
@@ -12,6 +21,7 @@ public class GUI extends JFrame {
     private JPanel paneBas;
     private JPanel paneType;
     private JPanel paneGrammage;
+
     //Labels
     private JLabel l_ref;
     private JLabel l_designation;
@@ -21,6 +31,7 @@ public class GUI extends JFrame {
     private JLabel l_type;
     private JLabel l_grammage;
     private JLabel l_Couleur;
+    private JLabel l_error;
 
     //Textfield
     private JTextField tf_ref;
@@ -29,11 +40,10 @@ public class GUI extends JFrame {
     private JTextField tf_stock;
     private JTextField tf_prix;
 
-
     //Boutons du bas
     private JButton b_precedentArticle;
     private JButton b_newArticle;
-    private JButton b_validerArticle;
+    private JButton b_modifierArticle;
     private JButton b_removeArticle;
     private JButton b_suivantArticle;
 
@@ -44,16 +54,22 @@ public class GUI extends JFrame {
     private ImageIcon ic_delete = getImageIcon("Delete24.gif");
     private ImageIcon ic_next = getImageIcon("Forward24.gif");
     //Types
-    //private ButtonGroup bg_type;
+    private ButtonGroup bg_type;
     private JRadioButton jr_Stylo;
     private JRadioButton jr_Ramette;
     //Grammage
-    //private ButtonGroup bg_grammage;
+    private ButtonGroup bg_grammage;
     private JCheckBox jc_80;
     private JCheckBox jc_100;
+    private final int C_80GR = 80;
+    private final int C_100GR = 100;
+    private int v_grammage =0;
     //Couleur
     private JComboBox b_couleurs;
     private Couleurs[] tab_couleurs = Couleurs.values();
+    //Catalogue Manager
+    private CatalogueManager cm = CatalogueManager.getInstance();
+    private Integer indexNav = 0;
 
     /**
      * Constructeur de la fenêtre
@@ -67,10 +83,12 @@ public class GUI extends JFrame {
         //this.pack(); //Permet de reduire au mieux la fenetre
         this.setContentPane(getPanePrincipal()); //Je colle le panneau principal au support en bois
         this.setVisible(true);
+        //TODO VOIR POUR RECUPERER L'ID MIN ET MAX ET CALIBRER NAVINDEX EN FONCTION
+
     }
 
 
-    //Les différents panneaux
+    //PANNEAU PRINCIPAL
     public JPanel getPanePrincipal() {
         if(panePrincipal == null) {
             panePrincipal = new JPanel();
@@ -78,11 +96,10 @@ public class GUI extends JFrame {
             panePrincipal.setLayout(new BorderLayout());
             panePrincipal.add(getPaneHaut(), BorderLayout.PAGE_START);
             panePrincipal.add(getPaneBas(), BorderLayout.PAGE_END);
-
         }
         return panePrincipal;
     }
-
+    //PANNEAU DU HAUT
     public JPanel getPaneHaut() {
         if(paneHaut == null) {
             paneHaut = new JPanel();
@@ -116,29 +133,33 @@ public class GUI extends JFrame {
             gbc.gridy = 9;
             gbc.insets.set(0,15,0,0);
             paneHaut.add(getJLabel(l_Couleur, "Couleur"), gbc);
+            gbc.gridx = 0;
+            gbc.gridy = 10;
+            gbc.insets.set(0,15,0,0);
+            paneHaut.add(getL_error(), gbc);
             /*---------------------------COLONNE 1--------------------------------------------------------*/
             gbc.gridx = 1;
             gbc.gridy = 0;
             gbc.weightx = 1;
             gbc.fill = GridBagConstraints.HORIZONTAL;
             gbc.insets.set(5,15,5,15);
-            paneHaut.add(getJTextField(tf_ref), gbc);
+            paneHaut.add(getTF_ref(), gbc);
             gbc.gridx = 1;
             gbc.gridy = 1;
             gbc.weightx = 1;
-            paneHaut.add(getJTextField(tf_designation), gbc);
+            paneHaut.add(getTF_designation(), gbc);
             gbc.gridx = 1;
             gbc.gridy = 2;
             gbc.weightx = 1;
-            paneHaut.add(getJTextField(tf_marque), gbc);
+            paneHaut.add(getTF_marque(), gbc);
             gbc.gridx = 1;
             gbc.gridy = 3;
             gbc.weightx = 1;
-            paneHaut.add(getJTextField(tf_stock), gbc);
+            paneHaut.add(getTF_stock(), gbc);
             gbc.gridx = 1;
             gbc.gridy = 4;
             gbc.weightx = 1;
-            paneHaut.add(getJTextField(tf_prix), gbc);
+            paneHaut.add(getTF_prix(), gbc);
             gbc.gridx = 1;
             gbc.gridy = 5;
             /*---------------------------COLONNE 1--------------------------------------------------------*/
@@ -149,51 +170,54 @@ public class GUI extends JFrame {
             paneHaut.add(getPaneGrammage(),gbc);
             gbc.gridx = 1;
             gbc.gridy = 9;
-            paneHaut.add(getB_couleurs(b_couleurs, tab_couleurs), gbc);
+            paneHaut.add(getB_couleurs(), gbc);
         }
         return paneHaut;
     }
-
-    public JPanel getPaneType() {
-        if (paneType == null) {
-            paneType = new JPanel();
-            paneType.setLayout(new BorderLayout());
-            paneType.add(getJRadioButton(jr_Ramette, "Ramette"), BorderLayout.PAGE_START);
-            paneType.add(getJRadioButton(jr_Stylo, "Stylo"), BorderLayout.PAGE_END);
-            ButtonGroup bg_type = new ButtonGroup();
-            bg_type.add(jr_Ramette);
-            bg_type.add(jr_Stylo);
-        }
-        return paneType;
-    }
-
-    public JPanel getPaneGrammage() {
-        if (paneGrammage == null) {
-            paneGrammage = new JPanel();
-            paneGrammage.setLayout(new BorderLayout());
-            paneGrammage.add(getJCheckBox(jc_80, "80 Grammes"), BorderLayout.PAGE_START);
-            paneGrammage.add(getJCheckBox(jc_100, "100 Grammes"), BorderLayout.PAGE_END);
-            ButtonGroup bg_grammage = new ButtonGroup();
-            bg_grammage.add(jc_80);
-            bg_grammage.add(jc_100);
-        }
-        return paneGrammage;
-    }
-
+    //PANNEAU DU BAS
     public JPanel getPaneBas() {
         if(paneBas == null) {
             paneBas = new JPanel();
             paneBas.setBackground(new Color(92,89,83));
             paneBas.setLayout(new FlowLayout());
-            paneBas.add(getButton(b_precedentArticle, ic_back, "Article précédent")); //J'ajoute le bouton au panneau principal
-            paneBas.add(getButton(b_newArticle, ic_new, "Ajouter article"));
-            paneBas.add(getButton(b_validerArticle, ic_save, "Sauvegarder l'article"));
-            paneBas.add(getButton(b_removeArticle, ic_delete, "Supprimer l'article"));
-            paneBas.add(getButton(b_suivantArticle, ic_next, "Article suivant"));
+            paneBas.add(getB_precedentArticle()); //J'ajoute le bouton au panneau principal
+            paneBas.add(getB_newArticle());
+            paneBas.add(getB_modifierArticle());
+            paneBas.add(getB_removeArticle());
+            paneBas.add(getB_suivantArticle());
 
         }
         return paneBas;
     }
+    //PANNEAU POUR LE TYPE D'ARTICLE
+    public JPanel getPaneType() {
+        if (paneType == null) {
+            paneType = new JPanel();
+            paneType.setLayout(new BorderLayout());
+            //CREATION DES BOUTONS RADIO
+            paneType.add(getJRB_Ramette(), BorderLayout.PAGE_START);
+            paneType.add(getJRB_Stylo(), BorderLayout.PAGE_END);
+            //CREATION D'UN GROUPE DE BOUTON + DEBUG
+            bg_type = new ButtonGroup();
+            bg_type.add(getJRB_Ramette());
+            bg_type.add(getJRB_Stylo());
+        }
+        return paneType;
+    }
+    //PANNEAU POUR LE CHOIX DU GRAMMAGE
+    public JPanel getPaneGrammage() {
+        if (paneGrammage == null) {
+            paneGrammage = new JPanel();
+            paneGrammage.setLayout(new BorderLayout());
+            paneGrammage.add(getJCB_80gr(), BorderLayout.PAGE_START);
+            paneGrammage.add(getJCB_100gr(), BorderLayout.PAGE_END);
+            bg_grammage = new ButtonGroup();
+            bg_grammage.add(getJCB_80gr());
+            bg_grammage.add(getJCB_100gr());
+        }
+        return paneGrammage;
+    }
+
 
     /**
      * Méthode pour récuperer les icones
@@ -213,21 +237,6 @@ public class GUI extends JFrame {
 
 
     /**
-     * Méthode Singleton pour la création d'un bouton, en fonction d'une icone et d'un tooltip
-     * @param b
-     * @param ic
-     * @param tooltip
-     * @return
-     */
-    public JButton getButton(JButton b, ImageIcon ic, String tooltip) {
-        if (b == null) {
-            b = new JButton(ic);
-            b.setToolTipText(tooltip);
-        }
-        return b;
-    }
-
-    /**
      * Méthode singleton pour la création d'un Label, en fonction d'un text
      * @param j
      * @param text
@@ -242,59 +251,359 @@ public class GUI extends JFrame {
     }
 
     /**
-     * Méthode singleton pour la création d'uun JTextField
-     * @param jt
+     * Méthode singleton qui crée un JCheckBox en fonction d'un texte
      * @return
      */
-    public JTextField getJTextField(JTextField jt) {
-        if (jt == null) {
-            jt = new JTextField();
-            jt.setForeground(new Color(255, 255, 255));
-            jt.setBackground(new Color(77,75,69));
+    public JCheckBox getJCB_80gr() {
+        if (jc_80 == null) {
+            jc_80 = new JCheckBox();
+            jc_80.setText("80 Grammes");
+            jc_80.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    v_grammage = C_80GR;
+                }
+            });
         }
-        return jt;
+        return jc_80;
+    }
+
+    public JCheckBox getJCB_100gr() {
+        if (jc_100 == null) {
+            jc_100 = new JCheckBox();
+            jc_100.setText("100 Grammes");
+            jc_100.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    v_grammage = C_100GR;
+                }
+            });
+        }
+        return jc_100;
+    }
+
+
+
+    /**
+     * Méthode singleton qui créer une Liste déroulante en fonction d'une liste de mot
+     * @return
+     */
+    public JComboBox getB_couleurs() {
+        if (b_couleurs == null) {
+            b_couleurs = new JComboBox(tab_couleurs);
+            b_couleurs.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+
+                }
+            });
+        }
+        return b_couleurs;
     }
 
     /**
      * Méthode singleton qui créé des JRadioButton en fonction d'un texte
-     * @param jrb
-     * @param text
      * @return
      */
-    public JRadioButton getJRadioButton(JRadioButton jrb, String text) {
-        if (jrb == null) {
-            jrb = new JRadioButton(text);
-            jrb.setBackground(new Color(92,89,83));
-            jrb.setForeground(new Color(255, 184, 42));
+    public JRadioButton getJRB_Ramette() {
+        if (jr_Ramette == null) {
+            jr_Ramette = new JRadioButton();
+            jr_Ramette.setText("Ramette");
+            jr_Ramette.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    b_couleurs.setEnabled(false);
+                    jc_80.setEnabled(true);
+                    jc_100.setEnabled(true);
+                }
+            });
         }
-        return jrb;
+        return jr_Ramette;
     }
 
-    /**
-     * Méthode singleton qui crée un JCheckBox en fonction d'un texte
-     * @param jcb
-     * @param text
-     * @return
-     */
-    public JCheckBox getJCheckBox(JCheckBox jcb, String text) {
-        if (jcb == null) {
-            jcb = new JCheckBox(text);
-            jcb.setBackground(new Color(92,89,83));
-            jcb.setForeground(new Color(255, 184, 42));
+
+    public JRadioButton getJRB_Stylo() {
+        if (jr_Stylo == null) {
+            jr_Stylo = new JRadioButton();
+            jr_Stylo.setText("Stylo");
+            jr_Stylo.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    b_couleurs.setEnabled(true);
+                    bg_grammage.clearSelection();
+                    jc_80.setEnabled(false);
+                    jc_100.setEnabled(false);
+                }
+            });
+
         }
-        return jcb;
+        return jr_Stylo;
     }
 
-    /**
-     * Méthode singleton qui créer une Liste déroulante en fonction d'une liste de mot
-     * @param j
-     * @param tab
-     * @return
-     */
-    public JComboBox getB_couleurs(JComboBox j, Couleurs[] tab) {
-        if (j == null) {
-            j = new JComboBox(tab);
+    public JButton getB_suivantArticle() {
+        if (b_suivantArticle == null) {
+            b_suivantArticle = new JButton(ic_next);
+            b_suivantArticle.setToolTipText("Article suivant");
+            b_suivantArticle.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    indexNav++;
+                    try {
+                        System.err.println(cm.getCatalogue().size());
+                        if (indexNav >= cm.getCatalogue().size()) {
+                            indexNav = cm.getCatalogue().size();
+                        }
+                        System.err.println(indexNav);
+                        if (cm.getArticle(indexNav) != null) {
+                            tf_designation.setText(cm.getArticle(indexNav).getDesignation());
+                            tf_marque.setText(cm.getArticle(indexNav).getMarque());
+                            tf_prix.setText(NumberFormat.getNumberInstance().format(cm.getArticle(indexNav).getPrixUnitaire()));
+                            tf_ref.setText(cm.getArticle(indexNav).getReference());
+                            tf_stock.setText(NumberFormat.getNumberInstance().format(cm.getArticle(indexNav).getQteStock()));
+
+                            if (cm.getArticle(indexNav) instanceof Stylo) {
+                                jr_Stylo.setSelected(true);
+                                bg_grammage.clearSelection();
+                                jc_80.setEnabled(false);
+                                jc_100.setEnabled(false);
+                                b_couleurs.setEnabled(true);
+                                switch (((Stylo) cm.getArticle(indexNav)).getCouleur()) {
+                                    case "jaune" : b_couleurs.setSelectedItem(Couleurs.JAUNE); break;
+                                    case "vert" : b_couleurs.setSelectedItem(Couleurs.VERT); break;
+                                    case "rouge" : b_couleurs.setSelectedItem(Couleurs.ROUGE); break;
+                                    case "noir" : b_couleurs.setSelectedItem(Couleurs.NOIR); break;
+                                    case "bleu" : b_couleurs.setSelectedItem(Couleurs.BLEU); break;
+                                }
+                            }
+                            else if (cm.getArticle(indexNav) instanceof Ramette) {
+                                jr_Ramette.setSelected(true);
+                                b_couleurs.setEnabled(false);
+                                jc_80.setEnabled(true);
+                                jc_100.setEnabled(true);
+                                switch (((Ramette) cm.getArticle(indexNav)).getGrammage()) {
+                                    case 80 : jc_80.setSelected(true); break;
+                                    case 100 : jc_100.setSelected(true); break;
+                                }
+                            }
+                            l_error.setEnabled(false);
+                            l_error.setText("");
+                        }
+                        else {
+                            l_error.setEnabled(true);
+                            l_error.setText("ARTICLE INCONNU");
+                            tf_designation.setText("");
+                            tf_marque.setText("");
+                            tf_prix.setText("");
+                            tf_ref.setText("");
+                            tf_stock.setText("");
+                            bg_grammage.clearSelection();
+                            bg_type.clearSelection();
+                            b_couleurs.setEnabled(true);
+                        }
+
+                    } catch (BLLException bllException) {
+                        bllException.printStackTrace();
+
+                    }
+                }
+            });
         }
-        return j;
+        return b_suivantArticle;
     }
+
+    public JButton getB_modifierArticle() {
+        if (b_modifierArticle == null) {
+            b_modifierArticle = new JButton(ic_save);
+            b_modifierArticle.setToolTipText("Modifier article");
+        }
+        return b_modifierArticle;
+    }
+
+    public JButton getB_removeArticle() {
+        if (b_removeArticle == null) {
+            b_removeArticle = new JButton(ic_delete);
+            b_removeArticle.setToolTipText("Supprimer article");
+        }
+        b_removeArticle.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    if (cm.getArticle(indexNav) != null) {
+                        cm.removeArticle(indexNav);
+                        l_error.setEnabled(true);
+                        l_error.setText("ARTICLE INCONNU");
+                        tf_designation.setText("");
+                        tf_marque.setText("");
+                        tf_prix.setText("");
+                        tf_ref.setText("");
+                        tf_stock.setText("");
+                        bg_grammage.clearSelection();
+                        bg_type.clearSelection();
+                        b_couleurs.setEnabled(true);
+                    }
+                    else {
+                        l_error.setEnabled(true);
+                        l_error.setText("ARTICLE DEJA SUPPRIME");
+                    }
+
+                } catch (BLLException bllException) {
+                    bllException.printStackTrace();
+                }
+            }
+        });
+        return b_removeArticle;
+    }
+
+    public JButton getB_precedentArticle() {
+        if (b_precedentArticle == null) {
+            b_precedentArticle = new JButton(ic_back);
+            b_precedentArticle.setToolTipText("Article précédent");
+            b_precedentArticle.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    indexNav--;
+                    try {
+                        if (indexNav < 0) {
+                            indexNav = 0;
+                        }
+                        System.err.println(indexNav);
+                        if (cm.getArticle(indexNav) != null) {
+                            tf_designation.setText(cm.getArticle(indexNav).getDesignation());
+                            tf_marque.setText(cm.getArticle(indexNav).getMarque());
+                            tf_prix.setText(NumberFormat.getNumberInstance().format(cm.getArticle(indexNav).getPrixUnitaire()));
+                            tf_ref.setText(cm.getArticle(indexNav).getReference());
+                            tf_stock.setText(NumberFormat.getNumberInstance().format(cm.getArticle(indexNav).getQteStock()));
+
+                            if (cm.getArticle(indexNav) instanceof Stylo) {
+                                jr_Stylo.setSelected(true);
+                                bg_grammage.clearSelection();
+                                jc_80.setEnabled(false);
+                                jc_100.setEnabled(false);
+                                b_couleurs.setEnabled(true);
+                                switch (((Stylo) cm.getArticle(indexNav)).getCouleur()) {
+                                    case "jaune" : b_couleurs.setSelectedItem(Couleurs.JAUNE); break;
+                                    case "vert" : b_couleurs.setSelectedItem(Couleurs.VERT); break;
+                                    case "rouge" : b_couleurs.setSelectedItem(Couleurs.ROUGE); break;
+                                    case "noir" : b_couleurs.setSelectedItem(Couleurs.NOIR); break;
+                                    case "bleu" : b_couleurs.setSelectedItem(Couleurs.BLEU); break;
+                                }
+                            }
+                            else if (cm.getArticle(indexNav) instanceof Ramette) {
+                                jr_Ramette.setSelected(true);
+                                b_couleurs.setEnabled(false);
+                                jc_80.setEnabled(true);
+                                jc_100.setEnabled(true);
+                                switch (((Ramette) cm.getArticle(indexNav)).getGrammage()) {
+                                    case 80 : jc_80.setSelected(true); break;
+                                    case 100 : jc_100.setSelected(true); break;
+                                }
+                            }
+                            l_error.setEnabled(false);
+                            l_error.setText("");
+
+                        }
+                        else {
+                            l_error.setEnabled(true);
+                            l_error.setText("ARTICLE INCONNU");
+                            tf_designation.setText("");
+                            tf_marque.setText("");
+                            tf_prix.setText("");
+                            tf_ref.setText("");
+                            tf_stock.setText("");
+                            bg_grammage.clearSelection();
+                            bg_type.clearSelection();
+                            b_couleurs.setEnabled(true);
+                        }
+
+                    } catch (BLLException bllException) {
+                        bllException.printStackTrace();
+                    }
+                }
+            });
+        }
+        return b_precedentArticle;
+    }
+
+    public JButton getB_newArticle() {
+        if (b_newArticle == null) {
+            b_newArticle = new JButton(ic_new);
+            b_newArticle.setToolTipText("Insérer l'article");
+            b_newArticle.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    try {
+                        Article article = null;
+                        float f = Float.parseFloat(tf_prix.getText().trim());
+                        int i = Integer.parseInt(tf_stock.getText().trim());
+                        if (jr_Ramette.isSelected()) {
+                            article = new Ramette(tf_marque.getText(), tf_ref.getText(), tf_designation.getText(), f, i, v_grammage);
+                        }
+                        else if (jr_Stylo.isSelected()) {
+                            article = new Stylo(tf_marque.getText(), tf_ref.getText(), tf_designation.getText(), f, i, b_couleurs.getSelectedItem().toString());
+
+                        }
+                        cm.addArticle(article);
+                    } catch (BLLException bllException) {
+                        bllException.printStackTrace();
+                    }
+                }
+            });
+        }
+        return b_newArticle;
+    }
+
+    public JTextField getTF_prix() {
+        if(tf_prix == null) {
+            tf_prix = new JTextField();
+            tf_prix.setForeground(new Color(255, 255, 255));
+            tf_prix.setBackground(new Color(77,75,69));
+        }
+        return tf_prix;
+    }
+
+    public JTextField getTF_stock() {
+        if(tf_stock == null) {
+            tf_stock = new JTextField();
+            tf_stock.setForeground(new Color(255, 255, 255));
+            tf_stock.setBackground(new Color(77,75,69));
+        }
+        return tf_stock;
+    }
+
+    public JTextField getTF_marque() {
+        if(tf_marque == null) {
+            tf_marque = new JTextField();
+            tf_marque.setForeground(new Color(255, 255, 255));
+            tf_marque.setBackground(new Color(77,75,69));
+        }
+        return tf_marque;
+    }
+
+    public JTextField getTF_designation() {
+        if(tf_designation == null) {
+            tf_designation = new JTextField();
+            tf_designation.setForeground(new Color(255, 255, 255));
+            tf_designation.setBackground(new Color(77,75,69));
+        }
+        return tf_designation;
+    }
+
+    public JTextField getTF_ref() {
+        if(tf_ref == null) {
+            tf_ref = new JTextField();
+            tf_ref.setForeground(new Color(255, 255, 255));
+            tf_ref.setBackground(new Color(77,75,69));
+        }
+        return tf_ref;
+    }
+
+    public JLabel getL_error() {
+        if(l_error == null) {
+            l_error = new JLabel();
+            l_error.setForeground(new Color(240, 0, 0));
+            l_error.setEnabled(false);
+        }
+        return l_error;
+    }
+
 }
