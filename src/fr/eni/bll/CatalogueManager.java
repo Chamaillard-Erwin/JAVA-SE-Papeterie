@@ -50,7 +50,7 @@ public class CatalogueManager {
             listArticle = articleDAO.selectAll();
         }
         catch(DALException e) {
-            throw new BLLException();
+            throw new BLLException(e.toString());
         }
         return listArticle;
     }
@@ -71,7 +71,7 @@ public class CatalogueManager {
             article = articleDAO.selectById(p_idArticle);
         }
         catch (DALException e) {
-            throw new BLLException();
+            throw new BLLException(e.toString());
         }
 
         return article;
@@ -91,7 +91,7 @@ public class CatalogueManager {
             articleDAO.update(article);
         }
         catch (DALException e) {
-            throw new BLLException();
+            throw new BLLException(e.toString());
         }
     }
 
@@ -109,7 +109,7 @@ public class CatalogueManager {
             articleDAO.insert(article);
         }
         catch (DALException e) {
-            throw new BLLException();
+            throw new BLLException(e.toString());
         }
 
     }
@@ -126,7 +126,7 @@ public class CatalogueManager {
             articleDAO.delete(id);
         }
         catch (DALException e) {
-            throw new BLLException();
+            throw new BLLException(e.toString());
         }
 
     }
@@ -139,23 +139,19 @@ public class CatalogueManager {
      * @param article
      * @throws BLLException
      */
-    public void validerArticle(Article article) throws BLLException {
+    private void validerArticle(Article article) throws BLLException {
         if (article.getQteStock() <= 0) {
-            throw new BLLException();
+            throw new BLLException("Le stock ne peut pas être négatif");
         }
-        if (article instanceof Ramette) {
-            if (((Ramette)article).getGrammage() <= 0) {
-                throw new BLLException();
-            }
+        if (article instanceof Ramette && ((Ramette)article).getGrammage() <= 0) {
+            throw new BLLException("Le grammage de dit pas être null");
         }
-        if (article instanceof Stylo) {
-            if (((Stylo)article).getCouleur().equals(null)) {
-                throw new BLLException();
-            }
+        if (article instanceof Stylo && (((Stylo)article).getCouleur() == null || ((Stylo)article).getCouleur().trim().length() == 0)) {
+                throw new BLLException("La couleur ne peut pas être null");
         }
-        if (article.getReference().equals(null) || article.getMarque().equals(null) || article.getDesignation().equals(null)
+        if (article.getReference() == null || article.getMarque() == null || article.getDesignation() == null
         || article.getPrixUnitaire() <= 0) {
-            throw new BLLException();
+            throw new BLLException("Il manque un attribut");
         }
     }
 

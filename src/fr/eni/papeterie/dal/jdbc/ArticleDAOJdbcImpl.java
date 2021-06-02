@@ -62,7 +62,7 @@ public class ArticleDAOJdbcImpl implements ArticleDAO {
         }
         catch(SQLException throwables) {
             throwables.printStackTrace();
-            throw new DALException();
+            throw new DALException("Erreur avec la requete SELECT ALL");
         }
         return articleList;
     }
@@ -109,7 +109,7 @@ public class ArticleDAOJdbcImpl implements ArticleDAO {
         }
         catch(SQLException throwables) {
             throwables.printStackTrace();
-            throw new DALException();
+            throw new DALException("Erreur avec la requete SELECT BY ID");
         }
 
         return article;
@@ -146,7 +146,7 @@ public class ArticleDAOJdbcImpl implements ArticleDAO {
         }
         catch(SQLException throwables) {
             throwables.printStackTrace();
-            throw new DALException();
+            throw new DALException("Erreur avec la requete UPDATE");
         }
     }
 
@@ -186,7 +186,7 @@ public class ArticleDAOJdbcImpl implements ArticleDAO {
 
         catch(SQLException throwables) {
             throwables.printStackTrace();
-            throw new DALException();
+            throw new DALException("Erreur avec la requete INSERT");
         }
     }
 
@@ -206,7 +206,7 @@ public class ArticleDAOJdbcImpl implements ArticleDAO {
         }
         catch(SQLException throwables) {
             throwables.printStackTrace();
-            throw new DALException();
+            throw new DALException("Erreur avec la requete DELETE");
         }
     }
 
